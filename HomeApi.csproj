@@ -16,7 +16,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Api\Middleware\" />
 	  <Folder Include="Infrastructure\Database\Migrations\" />
 	</ItemGroup>
 

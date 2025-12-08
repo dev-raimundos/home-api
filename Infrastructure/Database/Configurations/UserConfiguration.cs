@@ -10,7 +10,6 @@ namespace HomeApi.Infrastructure.Database.Configurations
         {
             builder.ToTable("USERS");
 
-            // Chave primária no Oracle
             builder.HasKey(u => u.Id);
 
             builder.Property(u => u.Id)

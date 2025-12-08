@@ -8,12 +8,17 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 		<PackageReference Include="Oracle.EntityFrameworkCore" Version="10.23.26000" />
 		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.26.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Infrastructure\" />
+	  <Folder Include="Api\Middleware\" />
+	  <Folder Include="Infrastructure\Database\Migrations\" />
 	</ItemGroup>
 
 </Project>

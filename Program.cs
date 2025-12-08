@@ -1,6 +1,5 @@
-using HomeApi.Domains.Users.Controllers;
-using HomeApi.Domains.Users.Repositories;
-using HomeApi.Domains.Users.Services;
+﻿using Microsoft.EntityFrameworkCore;
+using HomeApi.Infrastructure.Database;
 
 namespace HomeApi
 {
@@ -9,32 +8,41 @@ namespace HomeApi
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var config = builder.Configuration;
 
-            // ----- DEPENDENCY INJECTION -----
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<UserService>();
+            // ==========================================
+            // ORACLE WALLET (TNS_ADMIN)
+            // ==========================================
+            var walletPath = Path.Combine(builder.Environment.ContentRootPath,
+                                          config["Oracle:WalletLocation"]);
 
-            // ----- MVC CONTROLLERS -----
-            builder.Services.AddControllers()
-                .AddApplicationPart(typeof(UsersController).Assembly); // registra controllers do m�dulo Users
+            Environment.SetEnvironmentVariable("TNS_ADMIN", walletPath);
 
-            // ----- OPENAPI -----
-            builder.Services.AddOpenApi();
+            // ==========================================
+            // INFRA -> DATABASE ORACLE
+            // ==========================================
+            builder.Services.AddDbContext<AppDbContext>(options =>
+            {
+                options.UseOracle(config.GetConnectionString("DefaultConnection"));
+            });
 
             var app = builder.Build();
 
-            // ----- DEVELOPMENT ONLY -----
-            if (app.Environment.IsDevelopment())
+            // ==========================================
+            // ENDPOINT DE TESTE DE CONEXÃO
+            // ==========================================
+            app.MapGet("/test-db", async (AppDbContext db) =>
             {
-                app.MapOpenApi();
-            }
-
-            // ----- MIDDLEWARE PIPELINE -----
-            app.UseHttpsRedirection();
-
-            app.UseAuthorization(); // se tiver JwtMiddleware, entra antes disso
-
-            app.MapControllers();
+                try
+                {
+                    await db.Database.OpenConnectionAsync();
+                    return Results.Ok("Conexão com Oracle OK!");
+                }
+                catch (Exception ex)
+                {
+                    return Results.Problem("Erro ao conectar: " + ex.Message);
+                }
+            });
 
             app.Run();
         }

@@ -14,26 +14,18 @@ namespace HomeApi.Infrastructure
             IConfiguration configuration,
             string walletPath)
         {
-            // ==========================================
-            // ORACLE CONFIG (TNS_ADMIN)
-            // ==========================================
+            // ORACLE CONFIG
             Environment.SetEnvironmentVariable("TNS_ADMIN", walletPath);
 
-            // ==========================================
             // DATABASE
-            // ==========================================
             services.AddDbContext<AppDbContext>(options =>
                 options.UseOracle(configuration.GetConnectionString("DefaultConnection"))
             );
 
-            // ==========================================
             // REPOSITORIES
-            // ==========================================
             services.AddScoped<IUserRepository, UserRepository>();
 
-            // ==========================================
             // SERVICES
-            // ==========================================
             services.AddScoped<UserService>();
 
             return services;

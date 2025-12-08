@@ -1,5 +1,4 @@
-﻿using HomeApi.Infrastructure.Database;
-using Microsoft.EntityFrameworkCore;
+﻿using HomeApi.Infrastructure;
 
 namespace HomeApi
 {
@@ -10,22 +9,20 @@ namespace HomeApi
             var builder = WebApplication.CreateBuilder(args);
             var config = builder.Configuration;
 
-            // ORACLE WALLET 
+            // ORACLE WALLET LOCATION
             var walletLocation = config["Oracle:WalletLocation"];
             if (string.IsNullOrWhiteSpace(walletLocation))
             {
                 throw new InvalidOperationException("Oracle:WalletLocation configuration value is missing or empty.");
             }
+
             var walletPath = Path.Combine(
                 builder.Environment.ContentRootPath,
                 walletLocation
             );
 
-            Environment.SetEnvironmentVariable("TNS_ADMIN", walletPath);
-
-            // DATABASE
-            builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseOracle(config.GetConnectionString("DefaultConnection")));
+            // INFRASTRUCTURE (DB + SERVICES + REPOSITORIES)
+            builder.Services.AddInfrastructure(config, walletPath);
 
             // CONTROLLERS
             builder.Services.AddControllers();

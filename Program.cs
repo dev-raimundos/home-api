@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using HomeApi.Infrastructure.Database;
+﻿using HomeApi.Infrastructure.Database;
+using Microsoft.EntityFrameworkCore;
 
 namespace HomeApi
 {
@@ -10,39 +10,35 @@ namespace HomeApi
             var builder = WebApplication.CreateBuilder(args);
             var config = builder.Configuration;
 
-            // ==========================================
-            // ORACLE WALLET (TNS_ADMIN)
-            // ==========================================
-            var walletPath = Path.Combine(builder.Environment.ContentRootPath,
-                                          config["Oracle:WalletLocation"]);
+            // ORACLE WALLET 
+            var walletLocation = config["Oracle:WalletLocation"];
+            if (string.IsNullOrWhiteSpace(walletLocation))
+            {
+                throw new InvalidOperationException("Oracle:WalletLocation configuration value is missing or empty.");
+            }
+            var walletPath = Path.Combine(
+                builder.Environment.ContentRootPath,
+                walletLocation
+            );
 
             Environment.SetEnvironmentVariable("TNS_ADMIN", walletPath);
 
-            // ==========================================
-            // INFRA -> DATABASE ORACLE
-            // ==========================================
+            // DATABASE
             builder.Services.AddDbContext<AppDbContext>(options =>
-            {
-                options.UseOracle(config.GetConnectionString("DefaultConnection"));
-            });
+                options.UseOracle(config.GetConnectionString("DefaultConnection")));
+
+            // CONTROLLERS
+            builder.Services.AddControllers();
 
             var app = builder.Build();
 
-            // ==========================================
-            // ENDPOINT DE TESTE DE CONEXÃO
-            // ==========================================
-            app.MapGet("/test-db", async (AppDbContext db) =>
-            {
-                try
-                {
-                    await db.Database.OpenConnectionAsync();
-                    return Results.Ok("Conexão com Oracle OK!");
-                }
-                catch (Exception ex)
-                {
-                    return Results.Problem("Erro ao conectar: " + ex.Message);
-                }
-            });
+            // HTTPS + AUTH
+            app.UseHttpsRedirection();
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            // ENDPOINTS
+            app.MapControllers();
 
             app.Run();
         }

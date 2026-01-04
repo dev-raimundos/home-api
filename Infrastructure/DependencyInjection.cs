@@ -11,15 +11,13 @@ namespace HomeApi.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(
             this IServiceCollection services,
-            IConfiguration configuration,
-            string walletPath)
+            IConfiguration configuration)
         {
-            // ORACLE CONFIG
-            Environment.SetEnvironmentVariable("TNS_ADMIN", walletPath);
-
-            // DATABASE
             services.AddDbContext<AppDbContext>(options =>
-                options.UseOracle(configuration.GetConnectionString("DefaultConnection"))
+                options.UseSqlServer(
+                    configuration.GetConnectionString("DefaultConnection"),
+                    b => b.MigrationsAssembly("HomeApi")
+                )
             );
 
             // REPOSITORIES

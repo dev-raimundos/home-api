@@ -1,4 +1,5 @@
 ﻿using HomeApi.Infrastructure;
+using Scalar.AspNetCore;
 
 namespace HomeApi
 {
@@ -11,13 +12,26 @@ namespace HomeApi
 
             builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
-            // INFRASTRUCTURE (DB + SERVICES + REPOSITORIES)
+            builder.Services.AddOpenApi();
+
             builder.Services.AddInfrastructure(config);
 
-            // CONTROLLERS
             builder.Services.AddControllers();
 
             var app = builder.Build();
+
+            if (app.Environment.IsDevelopment())
+            {
+                app.MapOpenApi();
+
+                app.MapScalarApiReference("/", options =>
+                {
+                    options
+                        .WithTitle("Home API Documentation")
+                        .WithTheme(ScalarTheme.Mars)
+                        .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+                });
+            }
 
             // HTTPS + AUTH
             app.UseHttpsRedirection();
